@@ -9,8 +9,8 @@ app = Flask(__name__)
 db = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="password",
-    database="database"
+    password="Pdpg050399",
+    database="mr_robot"
 )
 cursor = db.cursor()
 
@@ -20,11 +20,28 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def compare_images(img1_path, img2_path):
     img1 = cv2.imread(img1_path, cv2.IMREAD_GRAYSCALE)
     img2 = cv2.imread(img2_path, cv2.IMREAD_GRAYSCALE)
+    if img1 is None or img2 is None:
+        print("Error: No se pudo cargar una de las imágenes.")
+        return 0  # O algún valor que indique error
+
     orb = cv2.ORB_create()
+
     kp1, des1 = orb.detectAndCompute(img1, None)
     kp2, des2 = orb.detectAndCompute(img2, None)
+
+    # Verificar si se encontraron descriptores en ambas imágenes
+    if des1 is None or des2 is None:
+        print("Error: No se encontraron suficientes características en una o ambas imágenes.")
+        return 0
+
+    # Asegurar que los descriptores tienen el mismo tipo
+    des1 = des1.astype('float32')
+    des2 = des2.astype('float32')
+
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+
     matches = bf.match(des1, des2)
+
     return len(matches)
 
 @app.route('/upload', methods=['POST'])
